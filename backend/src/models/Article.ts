@@ -1,6 +1,7 @@
 import { pool } from '../config/database';
 import { Article, ArticleStatus } from '../types';
 
+// Article database operations
 export class ArticleModel {
   static async create(title: string, content: string, category: string, authorId: string): Promise<Article> {
     const result = await pool.query(
@@ -15,6 +16,7 @@ export class ArticleModel {
     return result.rows[0] || null;
   }
 
+  // Get articles by author with pagination
   static async findByAuthor(authorId: string, limit: number, offset: number): Promise<{ articles: Article[]; total: number }> {
     const countResult = await pool.query('SELECT COUNT(*) FROM articles WHERE author_id = $1 AND deleted_at IS NULL', [authorId]);
     const result = await pool.query(
@@ -24,6 +26,7 @@ export class ArticleModel {
     return { articles: result.rows, total: parseInt(countResult.rows[0].count) };
   }
 
+  // Get published articles with optional category filter and pagination
   static async findPublished(limit: number, offset: number, category?: string): Promise<{ articles: Article[]; total: number }> {
     let query = 'SELECT * FROM articles WHERE status = $1 AND deleted_at IS NULL';
     let countQuery = 'SELECT COUNT(*) FROM articles WHERE status = $1 AND deleted_at IS NULL';
@@ -53,6 +56,7 @@ export class ArticleModel {
     return result.rows[0] || null;
   }
 
+  // Soft delete: sets deleted_at timestamp
   static async softDelete(id: string): Promise<boolean> {
     const result = await pool.query('UPDATE articles SET deleted_at = NOW() WHERE id = $1', [id]);
     return result.rowCount! > 0;

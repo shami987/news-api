@@ -1,7 +1,9 @@
 import { pool } from '../config/database';
 import { ReadLog, DailyAnalytics } from '../types';
 
+// Analytics database operations for tracking article views
 export class AnalyticsModel {
+  // Log a read event (readerId can be null for anonymous users)
   static async logRead(articleId: string, readerId: string | null): Promise<ReadLog> {
     const result = await pool.query(
       'INSERT INTO read_logs (article_id, reader_id) VALUES ($1, $2) RETURNING *',
@@ -10,6 +12,7 @@ export class AnalyticsModel {
     return result.rows[0];
   }
 
+  // Aggregate read logs into daily analytics (run by cron job)
   static async aggregateDailyViews(date: Date): Promise<void> {
     await pool.query(`
       INSERT INTO daily_analytics (article_id, view_count, date)
@@ -22,6 +25,7 @@ export class AnalyticsModel {
     `, [date]);
   }
 
+  // Get analytics with optional date range filter
   static async getArticleAnalytics(articleId: string, startDate?: Date, endDate?: Date): Promise<DailyAnalytics[]> {
     let query = 'SELECT * FROM daily_analytics WHERE article_id = $1';
     const params: any[] = [articleId];

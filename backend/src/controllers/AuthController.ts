@@ -6,6 +6,7 @@ import { successResponse, errorResponse } from '../utils/response';
 import { UserRole } from '../types';
 
 export class AuthController {
+  // User registration: validates input, checks duplicate email, creates user, returns JWT
   static async signup(req: Request, res: Response) {
     const { name, email, password, role } = req.body;
     const errors: string[] = [];
@@ -42,6 +43,7 @@ export class AuthController {
     }
   }
 
+  // User login: validates credentials, returns JWT
   static async login(req: Request, res: Response) {
     const { email, password } = req.body;
 

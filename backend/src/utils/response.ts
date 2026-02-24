@@ -1,3 +1,4 @@
+// API response formatters
 import { BaseResponse, PaginatedResponse } from '../types';
 
 export const successResponse = <T>(message: string, object: T | null = null): BaseResponse<T> => ({

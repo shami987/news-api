@@ -7,6 +7,7 @@ import { successResponse, errorResponse, paginatedResponse } from '../utils/resp
 import { ArticleStatus } from '../types';
 
 export class ArticleController {
+  // Create article (Author only)
   static async create(req: AuthRequest, res: Response) {
     const { title, content, category } = req.body;
     const errors: string[] = [];
@@ -33,6 +34,7 @@ export class ArticleController {
     }
   }
 
+  // Get author's own articles with pagination
   static async getMyArticles(req: AuthRequest, res: Response) {
     const page = parseInt(req.query.page as string) || 1;
     const pageSize = parseInt(req.query.pageSize as string) || 10;
@@ -46,6 +48,7 @@ export class ArticleController {
     }
   }
 
+  // Get published articles with optional category filter
   static async getPublished(req: AuthRequest, res: Response) {
     const page = parseInt(req.query.page as string) || 1;
     const pageSize = parseInt(req.query.pageSize as string) || 10;
@@ -60,6 +63,7 @@ export class ArticleController {
     }
   }
 
+  // Get article by ID and log view for analytics
   static async getById(req: AuthRequest, res: Response) {
     const { id } = req.params;
 
@@ -69,6 +73,7 @@ export class ArticleController {
         return res.status(404).json(errorResponse('Not found', ['Article not found']));
       }
 
+      // Log view only for published articles
       if (article.status === ArticleStatus.PUBLISHED) {
         await AnalyticsModel.logRead(id, req.userId || null);
       }
@@ -79,6 +84,7 @@ export class ArticleController {
     }
   }
 
+  // Update article (must be owner)
   static async update(req: AuthRequest, res: Response) {
     const { id } = req.params;
     const { title, content, category, status } = req.body;
@@ -117,6 +123,7 @@ export class ArticleController {
     }
   }
 
+  // Soft delete article (must be owner)
   static async delete(req: AuthRequest, res: Response) {
     const { id } = req.params;
 
@@ -133,6 +140,7 @@ export class ArticleController {
     }
   }
 
+  // Get article analytics (must be owner)
   static async getAnalytics(req: AuthRequest, res: Response) {
     const { id } = req.params;
     const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;

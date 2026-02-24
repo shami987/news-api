@@ -2,7 +2,9 @@ import { pool } from '../config/database';
 import { User, UserRole } from '../types';
 import bcrypt from 'bcrypt';
 
+// User database operations
 export class UserModel {
+  // Create user with hashed password
   static async create(name: string, email: string, password: string, role: UserRole): Promise<User> {
     const hashedPassword = await bcrypt.hash(password, 10);
     const result = await pool.query(
@@ -22,6 +24,7 @@ export class UserModel {
     return result.rows[0] || null;
   }
 
+  // Verify password using bcrypt
   static async verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
     return bcrypt.compare(plainPassword, hashedPassword);
   }

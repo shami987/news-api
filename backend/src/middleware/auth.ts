@@ -3,11 +3,13 @@ import jwt from 'jsonwebtoken';
 import { errorResponse } from '../utils/response';
 import { UserRole } from '../types';
 
+// Extended Request with user authentication data
 export interface AuthRequest extends Request {
   userId?: string;
   userRole?: UserRole;
 }
 
+// Verify JWT token and attach user data to request
 export const authenticate = (req: AuthRequest, res: Response, next: NextFunction) => {
   const token = req.headers.authorization?.split(' ')[1];
   
@@ -25,6 +27,7 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
   }
 };
 
+// Check if user has required role
 export const authorizeRole = (role: UserRole) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (req.userRole !== role) {

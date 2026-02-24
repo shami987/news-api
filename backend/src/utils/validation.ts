@@ -1,3 +1,5 @@
+// Input validation functions
+
 export const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
@@ -8,6 +10,7 @@ export const validateName = (name: string): boolean => {
   return nameRegex.test(name);
 };
 
+// Strong password: 8+ chars, uppercase, lowercase, number, special char
 export const validatePassword = (password: string): boolean => {
   const minLength = password.length >= 8;
   const hasUpperCase = /[A-Z]/.test(password);
