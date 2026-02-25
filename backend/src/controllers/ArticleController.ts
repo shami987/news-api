@@ -48,15 +48,17 @@ export class ArticleController {
     }
   }
 
-  // Get published articles with optional category filter
+  // Get published articles with filters: category, author, keyword
   static async getPublished(req: AuthRequest, res: Response) {
     const page = parseInt(req.query.page as string) || 1;
     const pageSize = parseInt(req.query.pageSize as string) || 10;
     const category = req.query.category as string;
+    const author = req.query.author as string;
+    const keyword = req.query.q as string;
     const offset = (page - 1) * pageSize;
 
     try {
-      const { articles, total } = await ArticleModel.findPublished(pageSize, offset, category);
+      const { articles, total } = await ArticleModel.findPublished(pageSize, offset, category, author, keyword);
       return res.status(200).json(paginatedResponse('Articles retrieved successfully', articles, page, pageSize, total));
     } catch (error) {
       return res.status(500).json(errorResponse('Server error', ['Failed to retrieve articles']));

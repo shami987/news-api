@@ -201,7 +201,7 @@ Content-Type: application/json
 
 #### Get My Articles (Author only)
 ```http
-GET /api/articles/my-articles?page=1&pageSize=10
+GET /api/articles/my-articles
 ```
 
 #### Get Published Articles

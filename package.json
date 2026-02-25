@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc -p backend/tsconfig.json",
     "start": "node backend/dist/index.js",
-    "dev": "ts-node backend/index.ts"
+    "dev": "nodemon --exec ts-node backend/index.ts"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -21,6 +21,7 @@
     "@types/jsonwebtoken": "^9.0.5",
     "@types/pg": "^8.10.9",
     "ts-node": "^10.9.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "nodemon": "^3.0.0"
   }
 }

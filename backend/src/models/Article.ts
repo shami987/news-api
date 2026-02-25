@@ -26,20 +26,55 @@ export class ArticleModel {
     return { articles: result.rows, total: parseInt(countResult.rows[0].count) };
   }
 
-  // Get published articles with optional category filter and pagination
-  static async findPublished(limit: number, offset: number, category?: string): Promise<{ articles: Article[]; total: number }> {
-    let query = 'SELECT * FROM articles WHERE status = $1 AND deleted_at IS NULL';
-    let countQuery = 'SELECT COUNT(*) FROM articles WHERE status = $1 AND deleted_at IS NULL';
+  // Get published articles with filters: category, author name, keyword search
+  static async findPublished(
+    limit: number, 
+    offset: number, 
+    category?: string, 
+    authorName?: string, 
+    keyword?: string
+  ): Promise<{ articles: Article[]; total: number }> {
+    let query = `
+      SELECT a.*, u.name as author_name 
+      FROM articles a 
+      JOIN users u ON a.author_id = u.id 
+      WHERE a.status = $1 AND a.deleted_at IS NULL
+    `;
+    let countQuery = `
+      SELECT COUNT(*) 
+      FROM articles a 
+      JOIN users u ON a.author_id = u.id 
+      WHERE a.status = $1 AND a.deleted_at IS NULL
+    `;
     const params: any[] = [ArticleStatus.PUBLISHED];
+    let paramIndex = 2;
     
+    // Category filter (exact match)
     if (category) {
-      query += ' AND category = $2';
-      countQuery += ' AND category = $2';
+      query += ` AND a.category = $${paramIndex}`;
+      countQuery += ` AND a.category = $${paramIndex}`;
       params.push(category);
+      paramIndex++;
+    }
+    
+    // Author name filter (partial match, case-insensitive)
+    if (authorName) {
+      query += ` AND u.name ILIKE $${paramIndex}`;
+      countQuery += ` AND u.name ILIKE $${paramIndex}`;
+      params.push(`%${authorName}%`);
+      paramIndex++;
+    }
+    
+    // Keyword search in title (case-insensitive)
+    if (keyword) {
+      query += ` AND a.title ILIKE $${paramIndex}`;
+      countQuery += ` AND a.title ILIKE $${paramIndex}`;
+      params.push(`%${keyword}%`);
+      paramIndex++;
     }
     
     const countResult = await pool.query(countQuery, params);
-    query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
+    query += ` ORDER BY a.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
     params.push(limit, offset);
     
     const result = await pool.query(query, params);
