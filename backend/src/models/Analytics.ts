@@ -12,13 +12,13 @@ export class AnalyticsModel {
     return result.rows[0];
   }
 
-  // Aggregate read logs into daily analytics (run by cron job)
+  // Aggregate read logs into daily analytics using GMT timezone
   static async aggregateDailyViews(date: Date): Promise<void> {
     await pool.query(`
       INSERT INTO daily_analytics (article_id, view_count, date)
-      SELECT article_id, COUNT(*) as view_count, DATE($1) as date
+      SELECT article_id, COUNT(*) as view_count, DATE($1 AT TIME ZONE 'GMT') as date
       FROM read_logs
-      WHERE DATE(read_at) = DATE($1)
+      WHERE DATE(read_at AT TIME ZONE 'GMT') = DATE($1 AT TIME ZONE 'GMT')
       GROUP BY article_id
       ON CONFLICT (article_id, date) 
       DO UPDATE SET view_count = EXCLUDED.view_count
