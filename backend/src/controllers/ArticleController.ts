@@ -80,25 +80,25 @@ export class ArticleController {
     }
   }
 
-  // Get article by ID and log read (tracks engagement)
+  // Get article by ID and log read (non-blocking analytics)
   static async getById(req: AuthRequest, res: Response) {
     const { id } = req.params;
 
     try {
-      // Check if article exists (including deleted ones)
       const article = await ArticleModel.findByIdIncludingDeleted(id);
       
       if (!article) {
         return res.status(404).json(errorResponse('Not found', ['Article not found']));
       }
 
-      // Check if article is deleted
       if (article.deletedAt) {
         return res.status(410).json(errorResponse('News article no longer available', ['News article no longer available']));
       }
 
-      // Log read for every successful view (logged in or guest)
-      await AnalyticsModel.logRead(id, req.userId || null);
+      // Non-blocking: Log read asynchronously without awaiting
+      AnalyticsModel.logRead(id, req.userId || null).catch(err => {
+        console.error('Failed to log read:', err);
+      });
 
       return res.status(200).json(successResponse('Article retrieved successfully', article));
     } catch (error) {
