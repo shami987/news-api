@@ -23,36 +23,39 @@ A RESTful API for Authors to publish content and Readers to consume it, with an 
 
 ```
 news-api/
-├── README.md
-├── .env.example
-├── .gitignore
-├── package.json
-└── backend/
-    ├── index.ts
-    ├── tsconfig.json
-    ├── schema.sql
-    ├── src/
-    │   ├── config/
-    │   │   └── database.ts
-    │   ├── models/
-    │   │   ├── User.ts
-    │   │   ├── Article.ts
-    │   │   └── Analytics.ts
-    │   ├── controllers/
-    │   │   ├── AuthController.ts
-    │   │   └── ArticleController.ts
-    │   ├── routes/
-    │   │   ├── auth.ts
-    │   │   └── articles.ts
-    │   ├── middleware/
-    │   │   └── auth.ts
-    │   ├── utils/
-    │   │   ├── validation.ts
-    │   │   └── response.ts
-    │   └── types.ts
-    └── tests/
+|-- README.md
+|-- TEST.md
+|-- .env.example
+|-- .gitignore
+|-- package.json
+`-- backend/
+    |-- index.ts
+    |-- tsconfig.json
+    |-- schema.sql
+    `-- src/
+        |-- config/
+        |   `-- database.ts
+        |-- models/
+        |   |-- User.ts
+        |   |-- Article.ts
+        |   `-- Analytics.ts
+        |-- controllers/
+        |   |-- AuthController.ts
+        |   `-- ArticleController.ts
+        |-- routes/
+        |   |-- auth.ts
+        |   |-- articles.ts
+        |   `-- author.ts
+        |-- middleware/
+        |   `-- auth.ts
+        |-- jobs/
+        |   |-- analyticsJob.ts
+        |   `-- analyticsQueue.ts
+        |-- utils/
+        |   |-- validation.ts
+        |   `-- response.ts
+        `-- types.ts
 ```
-
 ## Setup Instructions
 
 ### 1. Install Dependencies
@@ -76,40 +79,12 @@ JWT_SECRET=your-secret-key-here
 NODE_ENV=development
 ```
 
-### 3. Setup PostgreSQL Database
 
-**Option 1: Using PostgreSQL locally**
 
-1. Install PostgreSQL from [postgresql.org](https://www.postgresql.org/download/)
-
-2. Create a database:
-```bash
-# Login to PostgreSQL
-psql -U postgres
-
-# Create database
-CREATE DATABASE newsapi;
-
-# Exit
-\q
-```
-
-3. Run the schema:
-```bash
-psql -U postgres -d newsapi -f backend/schema.sql
-```
-
-4. Update `.env` with your connection:
-```env
-DATABASE_URL=postgresql://postgres:your_password@localhost:5432/newsapi
-```
-
-**Option 2: Using cloud PostgreSQL (Neon, Supabase, etc.)**
+**Option 1: Using cloud PostgreSQL (Neon)**
 
 1. Create a free PostgreSQL database at:
-   - [Neon](https://neon.tech) (recommended)
-   - [Supabase](https://supabase.com)
-   - [ElephantSQL](https://www.elephantsql.com)
+   - [Neon](https://neon.tech)
 
 2. Copy the connection string provided
 
@@ -354,3 +329,4 @@ await AnalyticsModel.aggregateDailyViews(new Date());
 ## License
 
 MIT
+
