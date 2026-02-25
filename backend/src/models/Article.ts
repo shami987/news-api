@@ -16,6 +16,12 @@ export class ArticleModel {
     return result.rows[0] || null;
   }
 
+  // Find article including deleted ones (for checking if deleted)
+  static async findByIdIncludingDeleted(id: string): Promise<Article | null> {
+    const result = await pool.query('SELECT * FROM articles WHERE id = $1', [id]);
+    return result.rows[0] || null;
+  }
+
   // Get articles by author with pagination
   static async findByAuthor(authorId: string, limit: number, offset: number): Promise<{ articles: Article[]; total: number }> {
     const countResult = await pool.query('SELECT COUNT(*) FROM articles WHERE author_id = $1 AND deleted_at IS NULL', [authorId]);

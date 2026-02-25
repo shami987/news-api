@@ -65,20 +65,25 @@ export class ArticleController {
     }
   }
 
-  // Get article by ID and log view for analytics
+  // Get article by ID and log read (tracks engagement)
   static async getById(req: AuthRequest, res: Response) {
     const { id } = req.params;
 
     try {
-      const article = await ArticleModel.findById(id);
+      // Check if article exists (including deleted ones)
+      const article = await ArticleModel.findByIdIncludingDeleted(id);
+      
       if (!article) {
         return res.status(404).json(errorResponse('Not found', ['Article not found']));
       }
 
-      // Log view only for published articles
-      if (article.status === ArticleStatus.PUBLISHED) {
-        await AnalyticsModel.logRead(id, req.userId || null);
+      // Check if article is deleted
+      if (article.deletedAt) {
+        return res.status(410).json(errorResponse('News article no longer available', ['News article no longer available']));
       }
+
+      // Log read for every successful view (logged in or guest)
+      await AnalyticsModel.logRead(id, req.userId || null);
 
       return res.status(200).json(successResponse('Article retrieved successfully', article));
     } catch (error) {
