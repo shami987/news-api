@@ -34,14 +34,15 @@ export class ArticleController {
     }
   }
 
-  // Get author's own articles with pagination
+  // Get author's own articles (Draft + Published, optionally include deleted)
   static async getMyArticles(req: AuthRequest, res: Response) {
     const page = parseInt(req.query.page as string) || 1;
     const pageSize = parseInt(req.query.pageSize as string) || 10;
+    const includeDeleted = req.query.includeDeleted === 'true';
     const offset = (page - 1) * pageSize;
 
     try {
-      const { articles, total } = await ArticleModel.findByAuthor(req.userId!, pageSize, offset);
+      const { articles, total } = await ArticleModel.findByAuthor(req.userId!, pageSize, offset, includeDeleted);
       return res.status(200).json(paginatedResponse('Articles retrieved successfully', articles, page, pageSize, total));
     } catch (error) {
       return res.status(500).json(errorResponse('Server error', ['Failed to retrieve articles']));
