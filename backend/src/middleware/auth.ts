@@ -9,6 +9,12 @@ export interface AuthRequest extends Request {
   userRole?: UserRole;
 }
 
+interface JwtPayload {
+  sub?: string;
+  userId?: string;
+  role?: UserRole;
+}
+
 // Verify JWT token and attach user data to request
 export const authenticate = (req: AuthRequest, res: Response, next: NextFunction) => {
   const token = req.headers.authorization?.split(' ')[1];
@@ -18,13 +24,34 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
   }
   
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string; role: UserRole };
-    req.userId = decoded.userId;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    req.userId = decoded.sub || decoded.userId;
     req.userRole = decoded.role;
+    if (!req.userId || !req.userRole) {
+      return res.status(401).json(errorResponse('Invalid token', ['Token payload is invalid']));
+    }
     next();
   } catch (error) {
     return res.status(401).json(errorResponse('Invalid token', ['Token verification failed']));
   }
+};
+
+// Parses token if present, but allows unauthenticated requests.
+export const authenticateOptional = (req: AuthRequest, _res: Response, next: NextFunction) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    req.userId = decoded.sub || decoded.userId;
+    req.userRole = decoded.role;
+  } catch (error) {
+    // Ignore invalid optional auth token; request continues as guest.
+  }
+
+  return next();
 };
 
 // Check if user has required role

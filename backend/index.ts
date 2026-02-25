@@ -3,6 +3,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import authRoutes from './src/routes/auth';
 import articleRoutes from './src/routes/articles';
+import authorRoutes from './src/routes/author';
 import { startAnalyticsJob } from './src/jobs/analyticsJob';
 
 dotenv.config();
@@ -15,6 +16,7 @@ app.use(express.json());
 // Mount routes
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
+app.use('/api/author', authorRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'OK' });

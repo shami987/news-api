@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { ArticleModel } from '../models/Article';
 import { AnalyticsModel } from '../models/Analytics';
+import { enqueueReadLog } from '../jobs/analyticsQueue';
 import { validateTitle, validateContent } from '../utils/validation';
 import { successResponse, errorResponse, paginatedResponse } from '../utils/response';
 import { ArticleStatus } from '../types';
@@ -95,10 +96,8 @@ export class ArticleController {
         return res.status(410).json(errorResponse('News article no longer available', ['News article no longer available']));
       }
 
-      // Non-blocking: Log read asynchronously without awaiting
-      AnalyticsModel.logRead(id, req.userId || null).catch(err => {
-        console.error('Failed to log read:', err);
-      });
+      // Non-blocking: enqueue read tracking and return the article immediately.
+      enqueueReadLog(id, req.userId || null);
 
       return res.status(200).json(successResponse('Article retrieved successfully', article));
     } catch (error) {
@@ -128,8 +127,11 @@ export class ArticleController {
 
     try {
       const article = await ArticleModel.findById(id);
-      if (!article || article.authorId !== req.userId) {
-        return res.status(404).json(errorResponse('Not found', ['Article not found or unauthorized']));
+      if (!article) {
+        return res.status(404).json(errorResponse('Not found', ['Article not found']));
+      }
+      if (article.authorId !== req.userId) {
+        return res.status(403).json(errorResponse('Forbidden', ['Forbidden']));
       }
 
       const updates: any = {};
@@ -151,8 +153,11 @@ export class ArticleController {
 
     try {
       const article = await ArticleModel.findById(id);
-      if (!article || article.authorId !== req.userId) {
-        return res.status(404).json(errorResponse('Not found', ['Article not found or unauthorized']));
+      if (!article) {
+        return res.status(404).json(errorResponse('Not found', ['Article not found']));
+      }
+      if (article.authorId !== req.userId) {
+        return res.status(403).json(errorResponse('Forbidden', ['Forbidden']));
       }
 
       await ArticleModel.softDelete(id);
@@ -170,8 +175,11 @@ export class ArticleController {
 
     try {
       const article = await ArticleModel.findById(id);
-      if (!article || article.authorId !== req.userId) {
-        return res.status(404).json(errorResponse('Not found', ['Article not found or unauthorized']));
+      if (!article) {
+        return res.status(404).json(errorResponse('Not found', ['Article not found']));
+      }
+      if (article.authorId !== req.userId) {
+        return res.status(403).json(errorResponse('Forbidden', ['Forbidden']));
       }
 
       const analytics = await AnalyticsModel.getArticleAnalytics(id, startDate, endDate);

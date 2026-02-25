@@ -35,7 +35,7 @@ export class AuthController {
       }
 
       const user = await UserModel.create(name, email, password, role);
-      const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET!, { expiresIn: '24h' });
+      const token = jwt.sign({ sub: user.id, role: user.role }, process.env.JWT_SECRET!, { expiresIn: '24h' });
 
       return res.status(201).json(successResponse('User created successfully', { user: { id: user.id, name: user.name, email: user.email, role: user.role }, token }));
     } catch (error) {
@@ -57,7 +57,7 @@ export class AuthController {
         return res.status(401).json(errorResponse('Authentication failed', ['Invalid credentials']));
       }
 
-      const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET!, { expiresIn: '24h' });
+      const token = jwt.sign({ sub: user.id, role: user.role }, process.env.JWT_SECRET!, { expiresIn: '24h' });
       return res.status(200).json(successResponse('Login successful', { user: { id: user.id, name: user.name, email: user.email, role: user.role }, token }));
     } catch (error) {
       return res.status(500).json(errorResponse('Server error', ['Failed to login']));

@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { AnalyticsModel } from '../models/Analytics';
+import { enqueueDailyAggregation } from './analyticsQueue';
 
 // Daily analytics aggregation job - runs at midnight GMT
 export const startAnalyticsJob = () => {
@@ -13,10 +13,10 @@ export const startAnalyticsJob = () => {
       yesterday.setUTCDate(yesterday.getUTCDate() - 1);
       yesterday.setUTCHours(0, 0, 0, 0);
       
-      // Aggregate views for yesterday
-      await AnalyticsModel.aggregateDailyViews(yesterday);
+      // Queue daily aggregation work so cron callback stays lightweight.
+      enqueueDailyAggregation(yesterday);
       
-      console.log(`Analytics aggregated successfully for ${yesterday.toISOString().split('T')[0]}`);
+      console.log(`Analytics aggregation queued for ${yesterday.toISOString().split('T')[0]}`);
     } catch (error) {
       console.error('Error aggregating analytics:', error);
     }

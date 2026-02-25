@@ -3,22 +3,41 @@ import { Article, ArticleStatus } from '../types';
 
 // Article database operations
 export class ArticleModel {
+  private static readonly articleSelect = `
+    id,
+    title,
+    content,
+    category,
+    status,
+    author_id AS "authorId",
+    created_at AS "createdAt",
+    deleted_at AS "deletedAt"
+  `;
+
   static async create(title: string, content: string, category: string, authorId: string): Promise<Article> {
     const result = await pool.query(
-      'INSERT INTO articles (title, content, category, status, author_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      `INSERT INTO articles (title, content, category, status, author_id)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING ${ArticleModel.articleSelect}`,
       [title, content, category, ArticleStatus.DRAFT, authorId]
     );
     return result.rows[0];
   }
 
   static async findById(id: string): Promise<Article | null> {
-    const result = await pool.query('SELECT * FROM articles WHERE id = $1 AND deleted_at IS NULL', [id]);
+    const result = await pool.query(
+      `SELECT ${ArticleModel.articleSelect} FROM articles WHERE id = $1 AND deleted_at IS NULL`,
+      [id]
+    );
     return result.rows[0] || null;
   }
 
   // Find article including deleted ones (for checking if deleted)
   static async findByIdIncludingDeleted(id: string): Promise<Article | null> {
-    const result = await pool.query('SELECT * FROM articles WHERE id = $1', [id]);
+    const result = await pool.query(
+      `SELECT ${ArticleModel.articleSelect} FROM articles WHERE id = $1`,
+      [id]
+    );
     return result.rows[0] || null;
   }
 
@@ -32,8 +51,8 @@ export class ArticleModel {
     
     const countResult = await pool.query(`SELECT COUNT(*) FROM articles ${whereClause}`, [authorId]);
     const result = await pool.query(
-      `SELECT *, 
-        CASE WHEN deleted_at IS NOT NULL THEN 'Deleted' ELSE status END as display_status
+      `SELECT ${ArticleModel.articleSelect},
+        CASE WHEN deleted_at IS NOT NULL THEN 'Deleted' ELSE status END as "displayStatus"
        FROM articles ${whereClause} ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
       [authorId, limit, offset]
     );
@@ -48,8 +67,8 @@ export class ArticleModel {
       SELECT 
         a.id,
         a.title,
-        a.created_at,
-        COALESCE(SUM(da.view_count), 0) as total_views
+        a.created_at AS "createdAt",
+        COALESCE(SUM(da.view_count), 0) AS "totalViews"
       FROM articles a
       LEFT JOIN daily_analytics da ON a.id = da.article_id
       WHERE a.author_id = $1 AND a.deleted_at IS NULL
@@ -70,7 +89,16 @@ export class ArticleModel {
     keyword?: string
   ): Promise<{ articles: Article[]; total: number }> {
     let query = `
-      SELECT a.*, u.name as author_name 
+      SELECT
+        a.id,
+        a.title,
+        a.content,
+        a.category,
+        a.status,
+        a.author_id AS "authorId",
+        a.created_at AS "createdAt",
+        a.deleted_at AS "deletedAt",
+        u.name AS "authorName"
       FROM articles a 
       JOIN users u ON a.author_id = u.id 
       WHERE a.status = $1 AND a.deleted_at IS NULL
@@ -120,7 +148,7 @@ export class ArticleModel {
     const fields = Object.keys(updates).map((key, i) => `${key} = $${i + 2}`).join(', ');
     const values = Object.values(updates);
     const result = await pool.query(
-      `UPDATE articles SET ${fields} WHERE id = $1 AND deleted_at IS NULL RETURNING *`,
+      `UPDATE articles SET ${fields} WHERE id = $1 AND deleted_at IS NULL RETURNING ${ArticleModel.articleSelect}`,
       [id, ...values]
     );
     return result.rows[0] || null;

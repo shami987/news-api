@@ -11,13 +11,13 @@ A RESTful API for Authors to publish content and Readers to consume it, with an 
 - **Soft Deletion**: Articles are soft-deleted for data integrity
 - **Pagination**: Efficient data retrieval with pagination support
 
-## Tech Stack
+## Technology Choices
 
-- **Runtime**: Node.js with TypeScript
-- **Framework**: Express.js
-- **Database**: PostgreSQL
-- **Authentication**: JWT (JSON Web Tokens)
-- **Password Hashing**: bcrypt
+- **Node.js with TypeScript**: Chosen for fast API development and type safety, which reduces runtime errors as the project grows.
+- **Express.js**: Chosen as a lightweight, flexible framework for building REST endpoints quickly without unnecessary complexity.
+- **PostgreSQL**: Chosen for reliable relational data storage, strong querying capabilities, and support for constraints needed by this domain.
+- **JWT (JSON Web Tokens)**: Chosen for stateless authentication, making it straightforward to secure API routes across clients.
+- **bcrypt**: Chosen to securely hash passwords with salting, following standard backend security practice.
 
 ## Project Structure
 
@@ -182,7 +182,8 @@ Content-Type: application/json
 
 ### Articles
 
-All article endpoints require authentication. Include JWT token in header:
+Author endpoints require authentication. Public feed and article details can be accessed as guest.
+Use JWT for protected routes:
 ```
 Authorization: Bearer <your-token>
 ```
@@ -201,15 +202,15 @@ Content-Type: application/json
 
 #### Get My Articles (Author only)
 ```http
-GET /api/articles/my-articles
+GET /api/articles/me
 ```
 
-#### Get Published Articles
+#### Get Published Articles (public)
 ```http
-GET /api/articles/published?page=1&pageSize=10&category=Tech
+GET /api/articles?page=1&pageSize=10&category=Tech
 ```
 
-#### Get Article by ID
+#### Get Article by ID (public, guest reads are tracked)
 ```http
 GET /api/articles/:id
 ```
@@ -233,6 +234,11 @@ DELETE /api/articles/:id
 #### Get Article Analytics (Author only, must be owner)
 ```http
 GET /api/articles/:id/analytics?startDate=2024-01-01&endDate=2024-12-31
+```
+
+#### Author Dashboard (Author only)
+```http
+GET /api/author/dashboard?page=1&pageSize=10
 ```
 
 ## Data Models
