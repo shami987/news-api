@@ -8,6 +8,7 @@ const router = Router();
 
 router.post('/', authenticate, authorizeRole(UserRole.AUTHOR), ArticleController.create);
 router.get('/me', authenticate, authorizeRole(UserRole.AUTHOR), ArticleController.getMyArticles);
+router.get('/dashboard', authenticate, authorizeRole(UserRole.AUTHOR), ArticleController.getDashboard);
 router.get('/:id/analytics', authenticate, authorizeRole(UserRole.AUTHOR), ArticleController.getAnalytics);
 router.get('/:id', authenticate, ArticleController.getById);
 router.put('/:id', authenticate, authorizeRole(UserRole.AUTHOR), ArticleController.update);

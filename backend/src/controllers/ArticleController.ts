@@ -48,6 +48,20 @@ export class ArticleController {
     }
   }
 
+  // Get author dashboard with engagement metrics
+  static async getDashboard(req: AuthRequest, res: Response) {
+    const page = parseInt(req.query.page as string) || 1;
+    const pageSize = parseInt(req.query.pageSize as string) || 10;
+    const offset = (page - 1) * pageSize;
+
+    try {
+      const { articles, total } = await ArticleModel.getAuthorDashboard(req.userId!, pageSize, offset);
+      return res.status(200).json(paginatedResponse('Dashboard data retrieved successfully', articles, page, pageSize, total));
+    } catch (error) {
+      return res.status(500).json(errorResponse('Server error', ['Failed to retrieve dashboard']));
+    }
+  }
+
   // Get published articles with filters: category, author, keyword
   static async getPublished(req: AuthRequest, res: Response) {
     const page = parseInt(req.query.page as string) || 1;

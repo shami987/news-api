@@ -32,6 +32,27 @@ export class ArticleModel {
     return { articles: result.rows, total: parseInt(countResult.rows[0].count) };
   }
 
+  // Get author dashboard with total views from DailyAnalytics
+  static async getAuthorDashboard(authorId: string, limit: number, offset: number): Promise<{ articles: any[]; total: number }> {
+    const countResult = await pool.query('SELECT COUNT(*) FROM articles WHERE author_id = $1 AND deleted_at IS NULL', [authorId]);
+    
+    const result = await pool.query(`
+      SELECT 
+        a.id,
+        a.title,
+        a.created_at,
+        COALESCE(SUM(da.view_count), 0) as total_views
+      FROM articles a
+      LEFT JOIN daily_analytics da ON a.id = da.article_id
+      WHERE a.author_id = $1 AND a.deleted_at IS NULL
+      GROUP BY a.id, a.title, a.created_at
+      ORDER BY a.created_at DESC
+      LIMIT $2 OFFSET $3
+    `, [authorId, limit, offset]);
+    
+    return { articles: result.rows, total: parseInt(countResult.rows[0].count) };
+  }
+
   // Get published articles with filters: category, author name, keyword search
   static async findPublished(
     limit: number, 
